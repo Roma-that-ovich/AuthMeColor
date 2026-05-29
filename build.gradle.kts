@@ -30,7 +30,7 @@ dependencies {
 
 java {
     // Строго фиксируем версию Java
-    toolchain.languageVersion.set(JavaLanguageVersion.of(26))
+    toolchain.languageVersion.set(JavaLanguageVersion.of(25))
 }
 
 tasks.withType<JavaCompile> {
