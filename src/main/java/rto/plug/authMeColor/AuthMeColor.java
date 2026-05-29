@@ -1,21 +1,24 @@
 package rto.plug.authMeColor;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.ListenerPriority;
-import com.comphenix.protocol.events.PacketAdapter;
-import com.comphenix.protocol.events.PacketEvent;
-import com.comphenix.protocol.wrappers.WrappedChatComponent;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.event.PacketListenerAbstract;
+import com.github.retrooper.packetevents.event.PacketSendEvent;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSystemChatMessage;
+import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class AuthMeColor extends JavaPlugin {
 
-    private ProtocolManager protocolManager;
+    @Override
+    public void onLoad() {
+        // Инициализируем API PacketEvents до запуска плагинов
+        PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
+        PacketEvents.getAPI().load();
+    }
 
     @Override
     public void onEnable() {
@@ -25,43 +28,45 @@ public final class AuthMeColor extends JavaPlugin {
             return;
         }
 
-        protocolManager = ProtocolLibrary.getProtocolManager();
-        registerChatInterceptor();
+        // Запускаем PacketEvents и регистрируем нашего слушателя
+        PacketEvents.getAPI().init();
+        PacketEvents.getAPI().getEventManager().registerListener(new ChatPacketInterceptor());
 
-        getLogger().info("AuthMeColor запущен! Движок MiniMessage активирован.");
+        getLogger().info("AuthMeColor успешно запущен на базе PacketEvents!");
     }
 
-    private void registerChatInterceptor() {
-        protocolManager.addPacketListener(new PacketAdapter(this, ListenerPriority.NORMAL, PacketType.Play.Server.SYSTEM_CHAT) {
-            @Override
-            public void onPacketSending(PacketEvent event) {
-                WrappedChatComponent chatComponent = event.getPacket().getChatComponents().readSafely(0);
-                if (chatComponent != null) {
-                    String json = chatComponent.getJson();
+    @Override
+    public void onDisable() {
+        PacketEvents.getAPI().terminate();
+    }
 
-                    // Проверяем, есть ли в сыром JSON наши теги
-                    if (json != null && (json.contains("<#") || json.contains("<gradient") || json.contains("<color"))) {
-                        try {
-                            // 1. Читаем кривой JSON от AuthMe и достаем из него чистый текст
-                            Component original = GsonComponentSerializer.gson().deserialize(json);
-                            String plainText = PlainTextComponentSerializer.plainText().serialize(original);
+    // Внутренний класс для перехвата пакетов
+    private class ChatPacketInterceptor extends PacketListenerAbstract {
+        @Override
+        public void onPacketSend(PacketSendEvent event) {
+            // Ловим пакет системного чата
+            if (event.getPacketType() == PacketType.Play.Server.SYSTEM_CHAT_MESSAGE) {
+                // Создаем удобную обертку для пакета
+                WrapperPlayServerSystemChatMessage chatPacket = new WrapperPlayServerSystemChatMessage(event);
 
-                            // 2. Пропускаем чистый текст через парсер MiniMessage
-                            Component coloredComponent = MiniMessage.miniMessage().deserialize(plainText);
+                // Получаем сообщение сразу в виде компонента Kyori!
+                Component originalMessage = chatPacket.getMessage();
+                if (originalMessage == null) return;
 
-                            // 3. Упаковываем обратно в правильный современный JSON формат с цветами
-                            String newJson = GsonComponentSerializer.gson().serialize(coloredComponent);
+                // Переводим его в обычный текст, чтобы найти теги
+                String plainText = PlainTextComponentSerializer.plainText().serialize(originalMessage);
 
-                            // 4. Заменяем пакет и отправляем игроку красивый текст
-                            chatComponent.setJson(newJson);
-                            event.getPacket().getChatComponents().write(0, chatComponent);
-                        } catch (Exception e) {
-                            // Если что-то пошло не так, сервер не упадет, а просто выведет оригинальное сообщение
-                            getLogger().warning("Не удалось покрасить сообщение: " + e.getMessage());
-                        }
+                // Если находим нужные теги MiniMessage, перекрашиваем
+                if (plainText.contains("<#") || plainText.contains("<gradient") || plainText.contains("<color")) {
+                    try {
+                        Component coloredMessage = MiniMessage.miniMessage().deserialize(plainText);
+                        // Отправляем красивый компонент обратно в пакет
+                        chatPacket.setMessage(coloredMessage);
+                    } catch (Exception e) {
+                        getLogger().warning("Ошибка рендера цвета: " + e.getMessage());
                     }
                 }
             }
-        });
+        }
     }
 }
