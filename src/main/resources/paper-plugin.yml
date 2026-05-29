@@ -9,6 +9,6 @@ dependencies:
     AuthMe:
       load: BEFORE
       required: true
-    ProtocolLib:
+    packetevents:
       load: BEFORE
       required: true
