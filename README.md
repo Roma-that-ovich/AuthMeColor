@@ -20,8 +20,8 @@
 ## 📦 Зависимости (Requirements)
 Для работы плагина на вашем сервере должны быть установлены:
 1. **Ядро сервера:** Paper 26.1.2
-2. **[AuthMe Reloaded](https://modrinth.com/plugin/authme-reloaded)**
-3. **[ProtocolLib](https://modrinth.com/plugin/protocollib)**
+2. **[AuthMe Reloaded](https://modrinth.com/plugin/authmereloaded)**
+3. **[ProtocolLib](https://www.spigotmc.org/resources/protocollib.1997/)**
 
 ## 📜 Открытый исходный код
 Плагин является полностью open-source проектом. Если вы разработчик, вы можете ознакомиться с исходным кодом в нашем [репозитории на GitHub](СЮДА_ВСТАВЬ_ССЫЛКУ_НА_ТВОЙ_GITHUB).
