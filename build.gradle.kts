@@ -9,23 +9,21 @@ version = "1.0.0"
 
 repositories {
     mavenCentral()
-    // Репозиторий PaperMC для ядра
     maven("https://repo.papermc.io/repository/maven-public/")
-    // Официальный репозиторий ProtocolLib
-    maven("https://repo.dmulloy2.net/repository/public/")
-    // Репозиторий для AuthMe (через JitPack)
     maven("https://jitpack.io")
+    // Репозиторий для PacketEvents
+    maven("https://repo.codemc.io/repository/maven-releases/")
 }
 
 dependencies {
     // Твоя рабочая версия ядра
     compileOnly("io.papermc.paper:paper-api:26.1.2.build.+")
 
-    // Обновленный ProtocolLib, который точно должен скачаться
-    compileOnly("com.comphenix.protocol:ProtocolLib:5.3.0")
-
     // AuthMe API
     compileOnly("com.github.AuthMe:AuthMeReloaded:5.6.0-beta2")
+
+// Правильные координаты и актуальная версия PacketEvents
+    compileOnly("com.github.retrooper:packetevents-spigot:2.12.1")
 }
 
 java {
