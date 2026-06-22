@@ -1,14 +1,9 @@
 name: AuthMeColor
-version: '1.0.0'
+version: '1.1.0'
 main: rto.plug.authMeColor.AuthMeColor
-api-version: '26.1.2'
+api-version: '1.20'
+depend:
+  - AuthMe
+  - packetevents
 authors: [ "Roma_that_ovich" ]
-description: "Добавляет поддержку HEX цветов и градиентов для сообщений AuthMe."
-dependencies:
-  server:
-    AuthMe:
-      load: BEFORE
-      required: true
-    packetevents:
-      load: BEFORE
-      required: true
+description: "Поддержка HEX и градиентов для AuthMe."
